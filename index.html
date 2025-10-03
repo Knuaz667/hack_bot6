@@ -1,148 +1,149 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🚀 PREMIUM BOT</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { background: linear-gradient(to bottom right, #111827, #000); }
-    .cell {
-      width: 3rem;
-      height: 3rem;
-      border-radius: 1rem;
-      background: #1f2937;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-      transition: all 0.3s ease;
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+
+export default function PremiumCrashBot() {
+  const [userId, setUserId] = useState("");
+  const [menu, setMenu] = useState(false);
+  const [game, setGame] = useState(null);
+  const [signals, setSignals] = useState([]);
+
+  const handleIdSubmit = () => {
+    if (userId.length === 10) setMenu(true);
+  };
+
+  const generateMines = () => {
+    let safeCells = new Set();
+    while (safeCells.size < 4) {
+      safeCells.add(Math.floor(Math.random() * 36));
     }
-    .cell:hover { background: #374151; }
-    .highlight { background: #10b981 !important; }
-  </style>
-</head>
-<body class="min-h-screen text-white flex flex-col items-center p-6">
+    setSignals(Array.from(safeCells));
+  };
 
-  <!-- Экран входа -->
-  <div id="login" class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
-    <h1 class="text-2xl font-bold mb-4">🚀 PREMIUM BOT</h1>
-    <p class="mb-2 text-green-400">Сигналы точные ✅</p>
-    <input id="userId" type="number" maxlength="10"
-      placeholder="Введите ID (10 цифр)"
-      class="w-full p-3 rounded-xl bg-gray-700 outline-none text-center text-lg tracking-widest"
-    />
-    <button onclick="enterBot()"
-      class="mt-4 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold text-lg">
-      Войти
-    </button>
-  </div>
+  const generatePenalty = () => {
+    let safeCell = Math.floor(Math.random() * 15);
+    setSignals([safeCell]);
+  };
 
-  <!-- Меню игр -->
-  <div id="menu" class="hidden grid grid-cols-1 gap-6 max-w-md w-full">
-    <button class="bg-gray-800 hover:bg-gray-700 p-6 rounded-2xl text-xl font-bold shadow-lg" onclick="openGame('aviator')">✈️ Авиатор</button>
-    <button class="bg-gray-800 hover:bg-gray-700 p-6 rounded-2xl text-xl font-bold shadow-lg" onclick="openGame('mines')">💣 Мины</button>
-    <button class="bg-gray-800 hover:bg-gray-700 p-6 rounded-2xl text-xl font-bold shadow-lg" onclick="openGame('penalty')">⚽ Пенальти</button>
-  </div>
-
-  <!-- Игры -->
-  <div id="game" class="hidden w-full max-w-lg text-center"></div>
-
-  <script>
-    const login = document.getElementById("login");
-    const menu = document.getElementById("menu");
-    const game = document.getElementById("game");
-    const userIdInput = document.getElementById("userId");
-
-    function enterBot() {
-      const id = userIdInput.value;
-      if (id.length === 10) {
-        login.classList.add("hidden");
-        menu.classList.remove("hidden");
-      } else {
-        alert("Введите корректный ID из 10 цифр!");
-      }
+  const generateAviator = () => {
+    let num;
+    if (Math.random() < 0.75) {
+      num = (Math.random() * (10.25 - 1.2) + 1.2).toFixed(2);
+    } else {
+      num = (Math.random() * (55 - 1) + 1).toFixed(2);
     }
+    setSignals([num]);
+  };
 
-    function openGame(type) {
-      menu.classList.add("hidden");
-      game.classList.remove("hidden");
-      game.innerHTML = "";
+  const Cell = ({ highlighted }) => (
+    <motion.div
+      className={`w-12 h-12 rounded-2xl shadow-md flex items-center justify-center cursor-pointer transition-all duration-300 ${
+        highlighted ? "bg-green-500" : "bg-gray-800 hover:bg-gray-700"
+      }`}
+      whileTap={{ scale: 0.9 }}
+    ></motion.div>
+  );
 
-      if (type === "aviator") {
-        game.innerHTML = `
-          <h2 class="text-2xl font-bold mb-4">✈️ Авиатор</h2>
-          <button onclick="generateAviator()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold">Получить сигнал</button>
-          <p id="aviatorSignal" class="mt-4 text-lg"></p>
-          <button onclick="backToMenu()" class="mt-6 bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-xl">Назад в меню</button>
-        `;
-      }
-
-      if (type === "mines") {
-        let grid = `<div class="grid grid-cols-6 gap-x-1 gap-y-3 mb-4" id="minesGrid">`;
-        for (let i = 0; i < 36; i++) {
-          grid += `<div class="cell" id="cell${i}"></div>`;
-        }
-        grid += `</div>`;
-        game.innerHTML = `
-          <h2 class="text-2xl font-bold mb-4">💣 Мины</h2>
-          ${grid}
-          <button onclick="generateMines()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold">Получить сигнал</button>
-          <button onclick="backToMenu()" class="mt-6 bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-xl">Назад в меню</button>
-        `;
-      }
-
-      if (type === "penalty") {
-        let grid = `<div class="grid grid-cols-5 gap-x-1 gap-y-3 mb-4" id="penaltyGrid">`;
-        for (let i = 0; i < 15; i++) {
-          grid += `<div class="cell" id="pCell${i}"></div>`;
-        }
-        grid += `</div>`;
-        game.innerHTML = `
-          <h2 class="text-2xl font-bold mb-4">⚽ Пенальти</h2>
-          ${grid}
-          <button onclick="generatePenalty()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold">Получить сигнал</button>
-          <button onclick="backToMenu()" class="mt-6 bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-xl">Назад в меню</button>
-        `;
-      }
-    }
-
-    function backToMenu() {
-      game.classList.add("hidden");
-      menu.classList.remove("hidden");
-    }
-
-    function generateAviator() {
-      let num;
-      if (Math.random() < 0.75) {
-        num = (Math.random() * (10.25 - 1.2) + 1.2).toFixed(2);
-      } else {
-        num = (Math.random() * (55 - 1) + 1).toFixed(2);
-      }
-      document.getElementById("aviatorSignal").innerHTML = `Следующий коэффициент: <span class="text-green-400">x${num}</span>`;
-    }
-
-    function generateMines() {
-      let safeCells = new Set();
-      while (safeCells.size < 4) {
-        safeCells.add(Math.floor(Math.random() * 36));
-      }
-      for (let i = 0; i < 36; i++) {
-        const cell = document.getElementById("cell" + i);
-        cell.classList.remove("highlight");
-        if (safeCells.has(i)) cell.classList.add("highlight");
-      }
-    }
-
-    function generatePenalty() {
-      let safeCell = Math.floor(Math.random() * 15);
-      for (let i = 0; i < 15; i++) {
-        const cell = document.getElementById("pCell" + i);
-        cell.classList.remove("highlight");
-        if (i === safeCell) cell.classList.add("highlight");
-      }
-    }
-  </script>
-</body>
-</html>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white flex flex-col items-center p-6">
+      {!menu ? (
+        <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
+          <h1 className="text-2xl font-bold mb-4">🚀 PREMIUM BOT</h1>
+          <p className="mb-2 text-green-400">Accurate signals ✅</p>
+          <input
+            type="number"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value.slice(0, 10))}
+            placeholder="Enter your ID (10 digits)"
+            className="w-full p-3 rounded-xl bg-gray-700 outline-none text-center text-lg tracking-widest"
+          />
+          <button
+            onClick={handleIdSubmit}
+            className="mt-4 bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold text-lg"
+          >
+            Enter
+          </button>
+        </div>
+      ) : !game ? (
+        <div className="grid grid-cols-1 gap-6 max-w-md w-full">
+          <button
+            className="bg-gray-800 hover:bg-gray-700 p-6 rounded-2xl text-xl font-bold shadow-lg"
+            onClick={() => setGame("aviator")}
+          >
+            ✈️ Aviator
+          </button>
+          <button
+            className="bg-gray-800 hover:bg-gray-700 p-6 rounded-2xl text-xl font-bold shadow-lg"
+            onClick={() => setGame("mines")}
+          >
+            💣 Mines
+          </button>
+          <button
+            className="bg-gray-800 hover:bg-gray-700 p-6 rounded-2xl text-xl font-bold shadow-lg"
+            onClick={() => setGame("penalty")}
+          >
+            ⚽ Penalty
+          </button>
+        </div>
+      ) : (
+        <div className="w-full max-w-lg text-center">
+          {game === "aviator" && (
+            <>
+              <h2 className="text-2xl font-bold mb-4">✈️ Aviator</h2>
+              <button
+                onClick={generateAviator}
+                className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold"
+              >
+                Get Signal
+              </button>
+              {signals.length > 0 && (
+                <p className="mt-4 text-lg">
+                  Next multiplier:{" "}
+                  <span className="text-green-400">x{signals[0]}</span>
+                </p>
+              )}
+            </>
+          )}
+          {game === "mines" && (
+            <>
+              <h2 className="text-2xl font-bold mb-4">💣 Mines</h2>
+              <div className="grid grid-cols-6 gap-x-1 gap-y-3 mb-4">
+                {Array.from({ length: 36 }).map((_, i) => (
+                  <Cell key={i} highlighted={signals.includes(i)} />
+                ))}
+              </div>
+              <button
+                onClick={generateMines}
+                className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold"
+              >
+                Get Signal
+              </button>
+            </>
+          )}
+          {game === "penalty" && (
+            <>
+              <h2 className="text-2xl font-bold mb-4">⚽ Penalty</h2>
+              <div className="grid grid-cols-5 gap-x-1 gap-y-3 mb-4">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <Cell key={i} highlighted={signals.includes(i)} />
+                ))}
+              </div>
+              <button
+                onClick={generatePenalty}
+                className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-xl font-semibold"
+              >
+                Get Signal
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => setGame(null)}
+            className="mt-6 bg-gray-700 hover:bg-gray-600 px-6 py-2 rounded-xl"
+          >
+            Back to Menu
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
